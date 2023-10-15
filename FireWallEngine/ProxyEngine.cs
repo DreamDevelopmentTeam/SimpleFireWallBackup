@@ -157,6 +157,7 @@ namespace FireWallEngine
 
         private void StartProxy()
         {
+            logger.Info(this.loggerName, $"Starting firewall proxy on {_localIP}:{_localPort} to {_remoteIP}:{_remotePort}");
             if (_protocolType == ProtocolType.Tcp)
             {
                 TcpListener listener = new TcpListener(_localIP, _localPort);
