@@ -16,7 +16,8 @@ namespace FireWallEngine
         public Dictionary<string, int> IpBlackList = new Dictionary<string, int>();
         public Dictionary<string, int> IpWhiteList = new Dictionary<string, int>();
 
-        private Logger logger = new Logger();
+        private Logger logger;
+        private string loggerName = "Proxy";
         
 
         public ProxyEngine(IPAddress localIP, int localPort, IPAddress remoteIP, int remotePort, ProtocolType protocolType)
@@ -26,7 +27,6 @@ namespace FireWallEngine
             this._remoteIP = remoteIP;
             this._remotePort = remotePort;
             this._protocolType = protocolType;
-            this.logger = new Logger();
 
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
@@ -41,7 +41,6 @@ namespace FireWallEngine
             this._remotePort = remotePort;
             this._protocolType = protocolType;
             this.IpBlackList = ipBlackList;
-            this.logger = new Logger();
 
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
@@ -58,7 +57,6 @@ namespace FireWallEngine
             this._protocolType = protocolType;
             this.IpBlackList = ipBlackList;
             this.IpWhiteList = IpWhiteList;
-            this.logger = new Logger();
 
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
@@ -66,10 +64,12 @@ namespace FireWallEngine
         }
 
 
-        public void SetLogger(Logger logger)
+        public void SetLogger(Logger logger , string loggerName = "Proxy")
         {
+            this.loggerName = loggerName;
             this.logger = logger;
         }
+        
 
         private void StartProxy()
         {
@@ -83,15 +83,17 @@ namespace FireWallEngine
                     TcpClient client = listener.AcceptTcpClient();
                     string clientIp = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
                     int port = ((IPEndPoint)client.Client.RemoteEndPoint).Port;
-                    logger.Info("");
                     if (IpBlackList.ContainsKey(clientIp))
                     {
                         if (IpBlackList[clientIp] == 0 || IpBlackList[clientIp] == port)
                         {
+                            logger.Info(this.loggerName, $"Blocked TCP connection from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
                             client.Close();
                             continue;
                         }
                     }
+                    
+                    logger.Info(this.loggerName, $"Accepted TCP connection from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
                     
                     NetworkStream clientStream = client.GetStream();
                     
@@ -121,9 +123,13 @@ namespace FireWallEngine
                     {
                         if (IpBlackList[clientIp] == 0 || IpBlackList[clientIp] == port)
                         {
+                            logger.Info(this.loggerName,$"Blocked UDP message from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
                             continue;
                         }
                     }
+                    
+                    logger.Info(this.loggerName,$"Accepted UDP message from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
+                    
                     byte[] bytes = listener.Receive(ref endPoint);
 
                     // TODO: Add your firewall logic here
@@ -150,7 +156,8 @@ namespace FireWallEngine
             catch (Exception e)
             {
                 // Handle the exception as needed
-                Console.WriteLine(e.Message);
+                //Console.WriteLine(e.Message);
+                this.logger.Error(this.loggerName, $"Error while relaying data: {e.Message}", e);
             }
         }
         
