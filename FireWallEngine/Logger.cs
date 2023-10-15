@@ -16,6 +16,7 @@ namespace FireWallEngine
     {
         // private static Logger instance;
         private FileStream logFile;
+        private StreamWriter streamWriter;
         private bool printOut;
         private bool writeOut;
         private bool enabled;
@@ -29,19 +30,23 @@ namespace FireWallEngine
         }
         
         // private
-        public Logger(bool printOut, bool writeOut, string fileName = null, FileStream fileStream = null)
+        // public Logger(bool printOut, bool writeOut, string fileName = null, FileStream fileStream = null
+        public Logger(bool printOut, bool writeOut, string fileName = null) //, FileStream fileStream = null)
         {
             this.enabled = true;
             this.printOut = printOut;
             this.writeOut = writeOut;
             if (fileName != null)
             {
-                this.logFile = new FileStream(fileName, FileMode.OpenOrCreate);
-                // this.logFile = new FileStream(fileName, FileMode.Append);
+                // this.logFile = new FileStream(fileName, FileMode.OpenOrCreate);
+                //this.logFile = new FileStream(fileName, FileMode.Append);
+                //this.streamWriter = new StreamWriter(logFile);
+                this.streamWriter = File.AppendText(fileName);
+                this.streamWriter.AutoFlush = true;
             }
             else
             {
-                this.logFile = fileStream;
+                //this.logFile = fileStream;
             }
         }
 
@@ -69,13 +74,21 @@ namespace FireWallEngine
                 {
                     logEntry += $"\nException: {ex.Message}\nStack Trace: {ex.StackTrace}";
                 }
-                if (this.writeOut && this.logFile != null)
+                // this.writeOut && this.logFile != null
+                if (this.writeOut && this.streamWriter != null)
                 {
                     // StreamWriter writer = new StreamWriter(logFile)
-                    using (StreamWriter writer = new StreamWriter(logFile))
+                    /*
+                     using (StreamWriter writer = new StreamWriter(logFile))
                     {
                         writer.WriteLine(logEntry);
+                        writer.Close();
                     }
+                    */
+                    //streamWriter.WriteLine(logEntry);
+                    
+                    streamWriter.WriteLine(logEntry);
+                    
                 }
                 if (this.printOut)
                 {
@@ -130,10 +143,23 @@ namespace FireWallEngine
 
         public void Close()
         {
+            
+             if (streamWriter != null)
+            {
+                this.streamWriter.Close();
+            }
+            
+            
             if (this.logFile != null)
             {
                 this.logFile.Close();
             }
+        }
+
+
+        ~Logger()
+        {
+            Close();
         }
     }
 }
