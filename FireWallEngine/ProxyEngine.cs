@@ -186,6 +186,22 @@ namespace FireWallEngine
                             continue;
                         }
                     }
+                    
+                    foreach(Regex regex in IpBlackListRegex.Keys)
+                    {
+                        if (regex.IsMatch(clientIp))
+                        {
+                            if (IpBlackListRegex[regex] == 0 || IpBlackListRegex[regex] == port)
+                            {
+                                logger.Warn(this.loggerName,
+                                    $"(Regex) Rejected TCP connection from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
+                                client.Close();                                
+                                continue;
+                            }
+                            
+                        }
+
+                    }
 
                     logger.Info(this.loggerName, $"Accepted TCP connection from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
                     
@@ -228,6 +244,21 @@ namespace FireWallEngine
                             logger.Warn(this.loggerName, $"(Accept Filter) Rejected UDP message from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
                             continue;
                         }
+                    }
+                    
+                    foreach(Regex regex in IpBlackListRegex.Keys)
+                    {
+                        if (regex.IsMatch(clientIp))
+                        {
+                            if (IpBlackListRegex[regex] == 0 || IpBlackListRegex[regex] == port)
+                            {
+                                logger.Warn(this.loggerName,
+                                    $"(Regex) Rejected UDP message from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
+                                continue;
+                            }
+                            
+                        }
+
                     }
                     
                     
