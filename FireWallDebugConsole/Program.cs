@@ -37,3 +37,6 @@ ProxyEngine engineB = new ProxyEngine(
 engineB.SetEventHandler(debugEvent);
 engineA.SetLogger(loggerA, loggerName: "ProxyA");
 engineB.SetLogger(loggerB, loggerName: "ProxyB");
+
+engineA.Start();
+engineB.Start();

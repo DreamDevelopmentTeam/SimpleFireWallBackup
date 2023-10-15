@@ -35,8 +35,10 @@ namespace FireWallEngine
             this._remotePort = remotePort;
             this._protocolType = protocolType;
 
+            /*
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
+            */
         }
 
         public ProxyEngine(IPAddress localIP, int localPort, IPAddress remoteIP, int remotePort,
@@ -49,8 +51,10 @@ namespace FireWallEngine
             this._protocolType = protocolType;
             this.IpBlackList = ipBlackList;
 
+            /*
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
+            */
             
         }
         
@@ -65,8 +69,10 @@ namespace FireWallEngine
             this.IpBlackList = ipBlackList;
             this.IpWhiteList = IpWhiteList;
 
+            /*
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
+            */
             
         }
         
@@ -80,8 +86,10 @@ namespace FireWallEngine
             this._protocolType = protocolType;
             this.IpBlackListRegex = ipBlackListRegex;
 
+            /*
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
+            */
             
         }
         
@@ -96,8 +104,10 @@ namespace FireWallEngine
             this.IpBlackListRegex = ipBlackListRegex;
             this.IpWhiteListRegex = IpWhiteListRegex;
 
+            /*
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
+            */
             
         }
         
@@ -113,8 +123,10 @@ namespace FireWallEngine
             this.IpBlackList = ipBlackList;
             this.IpBlackListRegex = ipBlackListRegex;
 
+            /*
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
+            */
             
         }
         
@@ -132,9 +144,17 @@ namespace FireWallEngine
             this.IpBlackListRegex = ipBlackListRegex;
             this.IpWhiteListRegex = ipWhiteListRegex;
 
+            /*
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
-            
+            */
+        }
+
+        public Thread Start()
+        {
+            Thread proxyThread = new Thread(StartProxy);
+            proxyThread.Start();
+            return proxyThread;
         }
 
 
