@@ -7,6 +7,15 @@ namespace FireWallEngine
     {
         private FileStream logFile;
         private bool printOut = false;
+        private bool enabled = true;
+        
+        
+        public Logger()
+        {
+            this.logFile = null;
+            this.printOut = false;
+            this.enabled = false;
+        }
 
         public Logger(FileStream file)
         {
@@ -34,52 +43,94 @@ namespace FireWallEngine
 
         public void Info(string name,string message)
         {
-            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            string logEntry = $"[INFO][{timestamp}]({name})> {message}";
-            using (StreamWriter writer = new StreamWriter(logFile))
+            if (enabled)
             {
-                writer.WriteLine(logEntry);
+                string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                string logEntry = $"[INFO][{timestamp}]({name})> {message}";
+                using (StreamWriter writer = new StreamWriter(logFile))
+                {
+                    writer.WriteLine(logEntry);
+                }
             }
         }
 
         public void Error(string name, string message)
         {
-            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            string logEntry = $"[ERROR][{timestamp}]({name})> {message}";
-            using (StreamWriter writer = new StreamWriter(logFile))
+            if (enabled)
             {
-                writer.WriteLine(logEntry);
+                string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                string logEntry = $"[ERROR][{timestamp}]({name})> {message}";
+                using (StreamWriter writer = new StreamWriter(logFile))
+                {
+                    writer.WriteLine(logEntry);
+                }
             }
         }
         
         public void Debug(string name, string message)
         {
-            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            string logEntry = $"[DEBUG][{timestamp}]({name})> {message}";
-            using (StreamWriter writer = new StreamWriter(logFile))
+            if (enabled)
             {
-                writer.WriteLine(logEntry);
+                string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                string logEntry = $"[DEBUG][{timestamp}]({name})> {message}";
+                using (StreamWriter writer = new StreamWriter(logFile))
+                {
+                    writer.WriteLine(logEntry);
+                }
             }
         }
         
         public void Warn(string name, string message)
         {
-            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            string logEntry = $"[WARN][{timestamp}]({name})> {message}";
-            using (StreamWriter writer = new StreamWriter(logFile))
+            if (enabled)
             {
-                writer.WriteLine(logEntry);
+                string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                string logEntry = $"[WARN][{timestamp}]({name})> {message}";
+                using (StreamWriter writer = new StreamWriter(logFile))
+                {
+                    writer.WriteLine(logEntry);
+                }
             }
         }
         
         public void Fatal(string name, string message)
         {
-            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            string logEntry = $"[Fatal][{timestamp}]({name})> {message}";
-            using (StreamWriter writer = new StreamWriter(logFile))
+            if (enabled)
             {
-                writer.WriteLine(logEntry);
+                string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                string logEntry = $"[Fatal][{timestamp}]({name})> {message}";
+                using (StreamWriter writer = new StreamWriter(logFile))
+                {
+                    writer.WriteLine(logEntry);
+                }
             }
+        }
+        
+        
+        
+        public void Info(string message)
+        {
+            Info("Service", message);
+        }
+
+        public void Error(string message)
+        {
+            Error("Service", message);
+        }
+        
+        public void Debug(string message)
+        {
+            Debug("Service", message);
+        }
+        
+        public void Warn(string message)
+        {
+            Warn("Service", message);
+        }
+        
+        public void Fatal(string message)
+        {
+            Fatal("Service", message);
         }
     }
 }

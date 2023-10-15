@@ -15,6 +15,8 @@ namespace FireWallEngine
         private readonly ProtocolType _protocolType;
         public Dictionary<string, int> IpBlackList = new Dictionary<string, int>();
         public Dictionary<string, int> IpWhiteList = new Dictionary<string, int>();
+
+        private Logger logger = new Logger();
         
 
         public ProxyEngine(IPAddress localIP, int localPort, IPAddress remoteIP, int remotePort, ProtocolType protocolType)
@@ -24,6 +26,7 @@ namespace FireWallEngine
             this._remoteIP = remoteIP;
             this._remotePort = remotePort;
             this._protocolType = protocolType;
+            this.logger = new Logger();
 
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
@@ -38,6 +41,7 @@ namespace FireWallEngine
             this._remotePort = remotePort;
             this._protocolType = protocolType;
             this.IpBlackList = ipBlackList;
+            this.logger = new Logger();
 
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
@@ -54,10 +58,17 @@ namespace FireWallEngine
             this._protocolType = protocolType;
             this.IpBlackList = ipBlackList;
             this.IpWhiteList = IpWhiteList;
+            this.logger = new Logger();
 
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
             
+        }
+
+
+        public void SetLogger(Logger logger)
+        {
+            this.logger = logger;
         }
 
         private void StartProxy()
@@ -72,6 +83,7 @@ namespace FireWallEngine
                     TcpClient client = listener.AcceptTcpClient();
                     string clientIp = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
                     int port = ((IPEndPoint)client.Client.RemoteEndPoint).Port;
+                    logger.Info("");
                     if (IpBlackList.ContainsKey(clientIp))
                     {
                         if (IpBlackList[clientIp] == 0 || IpBlackList[clientIp] == port)
