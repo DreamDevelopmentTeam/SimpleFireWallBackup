@@ -36,8 +36,8 @@ namespace FireWallEngine
             this.writeOut = writeOut;
             if (fileName != null)
             {
-                // this.logFile = new FileStream(fileName, FileMode.OpenOrCreate);
-                this.logFile = new FileStream(fileName, FileMode.Append);
+                this.logFile = new FileStream(fileName, FileMode.OpenOrCreate);
+                // this.logFile = new FileStream(fileName, FileMode.Append);
             }
             else
             {
@@ -71,6 +71,7 @@ namespace FireWallEngine
                 }
                 if (this.writeOut && this.logFile != null)
                 {
+                    // StreamWriter writer = new StreamWriter(logFile)
                     using (StreamWriter writer = new StreamWriter(logFile))
                     {
                         writer.WriteLine(logEntry);
