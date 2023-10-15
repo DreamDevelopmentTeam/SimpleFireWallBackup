@@ -56,7 +56,7 @@ namespace FireWallEngine
         {
             if (enabled)
             {
-                string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
                 string logEntry = $"[{level}]{timestamp}> {message}";
                 if (ex != null)
                 {
