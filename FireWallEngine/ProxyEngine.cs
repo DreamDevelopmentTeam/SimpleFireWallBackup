@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -12,7 +13,9 @@ namespace FireWallEngine
         private readonly IPAddress _remoteIP;
         private readonly int _remotePort;
         private readonly ProtocolType _protocolType;
-        public List<string> IpBlackList = new List<string>();
+        public Dictionary<string, int> IpBlackList = new Dictionary<string, int>();
+        public Dictionary<string, int> IpWhiteList = new Dictionary<string, int>();
+        
 
         public ProxyEngine(IPAddress localIP, int localPort, IPAddress remoteIP, int remotePort, ProtocolType protocolType)
         {
@@ -27,7 +30,7 @@ namespace FireWallEngine
         }
 
         public ProxyEngine(IPAddress localIP, int localPort, IPAddress remoteIP, int remotePort,
-            ProtocolType protocolType, List<string> ipBlackList)
+            ProtocolType protocolType, Dictionary<string, int> ipBlackList)
         {
             this._localIP = localIP;
             this._localPort = localPort;
@@ -35,6 +38,22 @@ namespace FireWallEngine
             this._remotePort = remotePort;
             this._protocolType = protocolType;
             this.IpBlackList = ipBlackList;
+
+            Thread proxyThread = new Thread(StartProxy);
+            proxyThread.Start();
+            
+        }
+        
+        public ProxyEngine(IPAddress localIP, int localPort, IPAddress remoteIP, int remotePort,
+            ProtocolType protocolType, Dictionary<string, int> ipBlackList, Dictionary<string, int> ipWhiteList)
+        {
+            this._localIP = localIP;
+            this._localPort = localPort;
+            this._remoteIP = remoteIP;
+            this._remotePort = remotePort;
+            this._protocolType = protocolType;
+            this.IpBlackList = ipBlackList;
+            this.IpWhiteList = IpWhiteList;
 
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
@@ -52,10 +71,14 @@ namespace FireWallEngine
                 {
                     TcpClient client = listener.AcceptTcpClient();
                     string clientIp = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
-                    if (IpBlackList.Contains(clientIp))
+                    int port = ((IPEndPoint)client.Client.RemoteEndPoint).Port;
+                    if (IpBlackList.ContainsKey(clientIp))
                     {
-                        client.Close();
-                        continue;
+                        if (IpBlackList[clientIp] == 0 || IpBlackList[clientIp] == port)
+                        {
+                            client.Close();
+                            continue;
+                        }
                     }
                     
                     NetworkStream clientStream = client.GetStream();
@@ -81,9 +104,13 @@ namespace FireWallEngine
                 {
                     IPEndPoint endPoint = new IPEndPoint(_localIP, _localPort);
                     string clientIp = endPoint.Address.ToString();
-                    if (IpBlackList.Contains(clientIp))
+                    int port = endPoint.Port;
+                    if (IpBlackList.ContainsKey(clientIp))
                     {
-                        continue;
+                        if (IpBlackList[clientIp] == 0 || IpBlackList[clientIp] == port)
+                        {
+                            continue;
+                        }
                     }
                     byte[] bytes = listener.Receive(ref endPoint);
 
