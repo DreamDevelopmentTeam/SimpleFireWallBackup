@@ -155,6 +155,14 @@ namespace FireWallEngine
             Thread proxyThread = new Thread(StartProxy);
             proxyThread.Start();
             return proxyThread;
+            
+        }
+        
+        public void StartVoid()
+        {
+            Thread proxyThread = new Thread(StartProxy);
+            proxyThread.Start();
+            
         }
 
 
