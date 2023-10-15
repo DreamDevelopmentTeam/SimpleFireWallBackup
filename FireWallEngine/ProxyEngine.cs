@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace FireWallEngine
@@ -15,6 +16,11 @@ namespace FireWallEngine
         private readonly ProtocolType _protocolType;
         public Dictionary<string, int> IpBlackList = new Dictionary<string, int>();
         public Dictionary<string, int> IpWhiteList = new Dictionary<string, int>();
+        public Dictionary<Regex, int> IpBlackListRegex = new Dictionary<Regex, int>();
+        public Dictionary<Regex, int> IpWhiteListRegex = new Dictionary<Regex, int>();
+
+        private IFireWallTrafficFilter trafficFilter = null;
+        private IFireWallAcceptFilter acceptFilter = null;
 
         private Logger logger;
         private string loggerName = "Proxy";
@@ -62,6 +68,73 @@ namespace FireWallEngine
             proxyThread.Start();
             
         }
+        
+        public ProxyEngine(IPAddress localIP, int localPort, IPAddress remoteIP, int remotePort,
+            ProtocolType protocolType, Dictionary<Regex, int> ipBlackListRegex)
+        {
+            this._localIP = localIP;
+            this._localPort = localPort;
+            this._remoteIP = remoteIP;
+            this._remotePort = remotePort;
+            this._protocolType = protocolType;
+            this.IpBlackListRegex = ipBlackListRegex;
+
+            Thread proxyThread = new Thread(StartProxy);
+            proxyThread.Start();
+            
+        }
+        
+        public ProxyEngine(IPAddress localIP, int localPort, IPAddress remoteIP, int remotePort,
+            ProtocolType protocolType, Dictionary<Regex, int> ipBlackListRegex, Dictionary<Regex, int> ipWhiteListRegex)
+        {
+            this._localIP = localIP;
+            this._localPort = localPort;
+            this._remoteIP = remoteIP;
+            this._remotePort = remotePort;
+            this._protocolType = protocolType;
+            this.IpBlackListRegex = ipBlackListRegex;
+            this.IpWhiteListRegex = IpWhiteListRegex;
+
+            Thread proxyThread = new Thread(StartProxy);
+            proxyThread.Start();
+            
+        }
+        
+        
+        public ProxyEngine(IPAddress localIP, int localPort, IPAddress remoteIP, int remotePort,
+            ProtocolType protocolType, Dictionary<string, int> ipBlackList, Dictionary<Regex, int> ipBlackListRegex )
+        {
+            this._localIP = localIP;
+            this._localPort = localPort;
+            this._remoteIP = remoteIP;
+            this._remotePort = remotePort;
+            this._protocolType = protocolType;
+            this.IpBlackList = ipBlackList;
+            this.IpBlackListRegex = ipBlackListRegex;
+
+            Thread proxyThread = new Thread(StartProxy);
+            proxyThread.Start();
+            
+        }
+        
+        public ProxyEngine(IPAddress localIP, int localPort, IPAddress remoteIP, int remotePort,
+            ProtocolType protocolType, Dictionary<string, int> ipBlackList, Dictionary<string, int> ipWhiteList
+            , Dictionary<Regex, int> ipBlackListRegex, Dictionary<Regex, int> ipWhiteListRegex)
+        {
+            this._localIP = localIP;
+            this._localPort = localPort;
+            this._remoteIP = remoteIP;
+            this._remotePort = remotePort;
+            this._protocolType = protocolType;
+            this.IpBlackList = ipBlackList;
+            this.IpWhiteList = IpWhiteList;
+            this.IpBlackListRegex = ipBlackListRegex;
+            this.IpWhiteListRegex = ipWhiteListRegex;
+
+            Thread proxyThread = new Thread(StartProxy);
+            proxyThread.Start();
+            
+        }
 
 
         public void SetLogger(Logger logger , string loggerName = "Proxy")
@@ -69,7 +142,18 @@ namespace FireWallEngine
             this.loggerName = loggerName;
             this.logger = logger;
         }
+
+        public void SetTrafficFilter(IFireWallTrafficFilter trafficFilter)
+        {
+            this.trafficFilter = trafficFilter;
+        }
         
+        public void SetAcceptFilter(IFireWallAcceptFilter acceptFilter
+        )
+        {
+            this.acceptFilter = acceptFilter;
+        }
+
 
         private void StartProxy()
         {
@@ -92,7 +176,17 @@ namespace FireWallEngine
                             continue;
                         }
                     }
-                    
+
+                    if (this.acceptFilter != null)
+                    {
+                        if (!this.acceptFilter.TCPFilter(((IPEndPoint)client.Client.RemoteEndPoint), new IPEndPoint(this._localIP, this._localPort)))
+                        {
+                            logger.Info(this.loggerName, $"(Accept Filter) Rejected TCP connection from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
+                            client.Close();                            
+                            continue;
+                        }
+                    }
+
                     logger.Info(this.loggerName, $"Accepted TCP connection from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
                     
                     NetworkStream clientStream = client.GetStream();
@@ -127,12 +221,30 @@ namespace FireWallEngine
                             continue;
                         }
                     }
+                    if (this.acceptFilter != null)
+                    {
+                        if (!this.acceptFilter.TCPFilter(endPoint, new IPEndPoint(this._localIP, this._localPort)))
+                        {
+                            logger.Info(this.loggerName, $"(Accept Filter) Rejected UDP message from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
+                            continue;
+                        }
+                    }
+                    
                     
                     logger.Info(this.loggerName,$"Accepted UDP message from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
                     
                     byte[] bytes = listener.Receive(ref endPoint);
 
                     // TODO: Add your firewall logic here
+                    
+                    if (this.trafficFilter != null)
+                    {
+                        if (!this.trafficFilter.UDPTrafficFilter(endPoint, bytes, bytes.Length))
+                        {
+                            logger.Info(this.loggerName, $"(Traffic Filter) Rejected UDP message from {clientIp}:{port} to {_remoteIP}:{_remotePort}");                            
+                            continue;
+                        }
+                    }
 
                     UdpClient sender = new UdpClient();
                     sender.Connect(_remoteIP, _remotePort);
@@ -146,10 +258,29 @@ namespace FireWallEngine
             byte[] buffer = new byte[4096];
             int bytesRead;
 
+            Socket inputSocket = input.Socket;
+            IPEndPoint inputEndPoint = (IPEndPoint)inputSocket.RemoteEndPoint;
+            AddressFamily inputAddressFamily = inputEndPoint.AddressFamily;
+            int inputPort = inputEndPoint.Port;
+            
+            Socket outputSocket = output.Socket;
+            IPEndPoint outputEndPoint = (IPEndPoint)inputSocket.RemoteEndPoint;
+            AddressFamily outputAddressFamily = inputEndPoint.AddressFamily;
+            int outputPort = inputEndPoint.Port;
+            
+            
             try
             {
                 while ((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
                 {
+                    if (this.trafficFilter != null)
+                    {
+                        if (!this.trafficFilter.TCPTrafficFilter(input, output, buffer, bytesRead))
+                        {
+                            logger.Info(this.loggerName, $"(Traffic Filter) Rejected TCP message from {inputAddressFamily}:{inputPort} to {outputAddressFamily}:{outputPort}");                         
+                            continue;
+                        }
+                    }
                     output.Write(buffer, 0, bytesRead);
                 }
             }
@@ -160,6 +291,8 @@ namespace FireWallEngine
                 this.logger.Error(this.loggerName, $"Error while relaying data: {e.Message}", e);
             }
         }
+        
+        
         
     }
 }
