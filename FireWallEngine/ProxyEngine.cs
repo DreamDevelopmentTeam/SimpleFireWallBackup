@@ -171,7 +171,7 @@ namespace FireWallEngine
                     {
                         if (IpBlackList[clientIp] == 0 || IpBlackList[clientIp] == port)
                         {
-                            logger.Info(this.loggerName, $"Blocked TCP connection from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
+                            logger.Warn(this.loggerName, $"Blocked TCP connection from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
                             client.Close();
                             continue;
                         }
@@ -181,7 +181,7 @@ namespace FireWallEngine
                     {
                         if (!this.acceptFilter.TCPFilter(((IPEndPoint)client.Client.RemoteEndPoint), new IPEndPoint(this._localIP, this._localPort)))
                         {
-                            logger.Info(this.loggerName, $"(Accept Filter) Rejected TCP connection from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
+                            logger.Warn(this.loggerName, $"(Accept Filter) Rejected TCP connection from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
                             client.Close();                            
                             continue;
                         }
@@ -217,7 +217,7 @@ namespace FireWallEngine
                     {
                         if (IpBlackList[clientIp] == 0 || IpBlackList[clientIp] == port)
                         {
-                            logger.Info(this.loggerName,$"Blocked UDP message from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
+                            logger.Warn(this.loggerName,$"Blocked UDP message from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
                             continue;
                         }
                     }
@@ -225,7 +225,7 @@ namespace FireWallEngine
                     {
                         if (!this.acceptFilter.TCPFilter(endPoint, new IPEndPoint(this._localIP, this._localPort)))
                         {
-                            logger.Info(this.loggerName, $"(Accept Filter) Rejected UDP message from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
+                            logger.Warn(this.loggerName, $"(Accept Filter) Rejected UDP message from {clientIp}:{port} to {_remoteIP}:{_remotePort}");
                             continue;
                         }
                     }
@@ -241,7 +241,7 @@ namespace FireWallEngine
                     {
                         if (!this.trafficFilter.UDPTrafficFilter(endPoint, bytes, bytes.Length))
                         {
-                            logger.Info(this.loggerName, $"(Traffic Filter) Rejected UDP message from {clientIp}:{port} to {_remoteIP}:{_remotePort}");                            
+                            logger.Warn(this.loggerName, $"(Traffic Filter) Rejected UDP message from {clientIp}:{port} to {_remoteIP}:{_remotePort}");                            
                             continue;
                         }
                     }
@@ -277,7 +277,7 @@ namespace FireWallEngine
                     {
                         if (!this.trafficFilter.TCPTrafficFilter(input, output, buffer, bytesRead))
                         {
-                            logger.Info(this.loggerName, $"(Traffic Filter) Rejected TCP message from {inputAddressFamily}:{inputPort} to {outputAddressFamily}:{outputPort}");                         
+                            logger.Warn(this.loggerName, $"(Traffic Filter) Rejected TCP message from {inputAddressFamily}:{inputPort} to {outputAddressFamily}:{outputPort}");                         
                             continue;
                         }
                     }
