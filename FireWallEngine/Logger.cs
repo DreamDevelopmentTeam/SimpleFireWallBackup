@@ -14,13 +14,13 @@ namespace FireWallEngine
 
     public class Logger
     {
-        private static Logger instance;
+        // private static Logger instance;
         private FileStream logFile;
         private bool printOut;
         private bool writeOut;
         private bool enabled;
 
-        private Logger()
+        public Logger()
         {
             this.logFile = null;
             this.printOut = false;
@@ -28,14 +28,16 @@ namespace FireWallEngine
             this.enabled = false;
         }
         
-        private Logger(bool printOut, bool writeOut, string fileName = null, FileStream fileStream = null)
+        // private
+        public Logger(bool printOut, bool writeOut, string fileName = null, FileStream fileStream = null)
         {
             this.enabled = true;
             this.printOut = printOut;
             this.writeOut = writeOut;
             if (fileName != null)
             {
-                this.logFile = new FileStream(fileName, FileMode.OpenOrCreate);
+                // this.logFile = new FileStream(fileName, FileMode.OpenOrCreate);
+                this.logFile = new FileStream(fileName, FileMode.Append);
             }
             else
             {
@@ -43,7 +45,9 @@ namespace FireWallEngine
             }
         }
 
-        public static Logger GetInstance(bool printOut = false, bool writeOut = false, string fileName = null, FileStream fileStream = null)
+        // private static
+        /*
+         private static Logger GetInstance(bool printOut = false, bool writeOut = false, string fileName = null, FileStream fileStream = null)
         {
             if (instance == null)
             {
@@ -51,13 +55,16 @@ namespace FireWallEngine
             }
             return instance;
         }
+        */
 
+        // private
         private void WriteLog(LogLevel level, string name, string message, Exception ex = null)
         {
             if (enabled)
             {
                 string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-                string logEntry = $"[{level}]{timestamp}> {message}";
+                // string logEntry = $"[{level}]{timestamp}> {message}";
+                string logEntry = $"[{level}]({timestamp})> {message}";
                 if (ex != null)
                 {
                     logEntry += $"\nException: {ex.Message}\nStack Trace: {ex.StackTrace}";

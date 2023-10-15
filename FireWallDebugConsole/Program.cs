@@ -11,8 +11,8 @@ Dictionary<string, int> ipBlackList = new Dictionary<string, int>()
 {
     { "127.0.0.1", 0 }
 };
-Logger loggerA = Logger.GetInstance(true, true, "logA.txt");
-Logger loggerB = Logger.GetInstance(true, true, "logB.txt");
+Logger loggerA = new Logger(true, true, "logA.txt");
+Logger loggerB = new Logger(true, true, "logB.txt");
 
 ProxyEngine engineA = new ProxyEngine(
         IPAddress.Any, 
